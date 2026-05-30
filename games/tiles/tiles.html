@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Screen Breakout</title>
+    <style>
+        /* Forces the page to occupy exactly 100% of the screen with no scrollbars */
+        html, body {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: darkgreen;
+        }
+
+        canvas {
+            background: darkgreen;
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    
+<canvas id="myCanvas"></canvas> 
+
+<script>
+// Declaring the canvas and drawing variables:
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+
+// Game States: "PLAYING", "GAMEOVER", "WIN"
+var gameState = "PLAYING";
+
+// Time Variables:
+var prevTime = new Date().getTime();
+var time = null;
+var newTime = null;
+
+// Variables for the circle:
+var ballRadius = 10;
+var startX, x, startY, y;
+var startDx = 0.3;
+var dx = startDx;
+var startDy = 0.3;
+var dy = -startDy;
+
+// Variables for the paddle:
+var paddleHeight = 15;
+var paddleWidth = 120; 
+var paddleDx = 6;
+var paddleX;
+var rightPressed = false;
+var leftPressed = false;
+
+// Variables for the bricks (5 rows of 14 columns = 70 Bricks):
+var brickRowCount = 5;       
+var brickColumnCount = 14;   
+var brickHeight = 20;
+var brickPadding = 6;
+var brickOffsetTop = 60;
+var brickOffsetLeft = 25;
+var brickWidth; 
+
+// Score & Lives:
+var score = 0;
+var lives = 3;
+
+// Creating an array to store the bricks:
+var bricks = [];
+function initBricks() {
+  bricks = [];
+  for (var c = 0; c < brickColumnCount; c++) {
+    bricks[c] = [];
+    for (var r = 0; r < brickRowCount; r++) {
+      bricks[c][r] = { x: 0, y: 0, status: 1 };
+    }
+  }
+}
+
+// Resizes the canvas pixel dimensions to match the screen perfectly
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    startX = canvas.width / 2;
+    startY = canvas.height - 40;
+    
+    if (gameState === "PLAYING" && (x === undefined || (lives === 3 && score === 0))) {
+        resetBallAndPaddle();
+    }
+
+    // Calculates flexible brick width based on dynamic screen sizes
+    var totalPaddingSpace = brickPadding * (brickColumnCount - 1);
+    var totalMarginSpace = brickOffsetLeft * 2;
+    brickWidth = (canvas.width - totalPaddingSpace - totalMarginSpace) / brickColumnCount;
+}
+
+function resetBallAndPaddle() {
+    x = startX;
+    y = startY;
+    dx = startDx;
+    dy = -startDy;
+    paddleX = (canvas.width - paddleWidth) / 2;
+}
+
+function resetGame() {
+    score = 0;
+    lives = 3;
+    initBricks();
+    resetBallAndPaddle();
+    gameState = "PLAYING";
+    prevTime = new Date().getTime();
+}
+
+// Run initial system builds
+initBricks();
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Function for drawing the bricks:
+function drawBricks() {
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      if (bricks[c][r].status == 1) {
+        var brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+        var brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+        bricks[c][r].x = brickX;
+        bricks[c][r].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        ctx.fillStyle = "#0095DD"; 
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+  }
+}
+
+function drawBall() {
+  ctx.beginPath(); 
+  ctx.arc(x, y, ballRadius, 0, Math.PI * 2); 
+  ctx.fillStyle = "#0095DD"; 
+  ctx.fill();
+  ctx.closePath(); 
+}
+
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
+  ctx.fillStyle = "#0095DD";
+  ctx.fill();
+  ctx.closePath();
+}
+
+// Draws screen filters when user Wins or Loses
+function drawScreenOverlay(title, subtitle, color) {
+  ctx.fillStyle = "rgba(17, 23, 30, 0.85)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Main Text Header
+  ctx.font = "bold 48px Arial";
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 20);
+
+  // Score Details Subtitle
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 30);
+
+  // Restart Interactive Button
+  ctx.fillStyle = "#0095DD";
+  ctx.fillRect(canvas.width / 2 - 100, canvas.height / 2 + 70, 200, 45);
+  
+  ctx.font = "bold 16px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("PLAY AGAIN", canvas.width / 2, canvas.height / 2 + 98);
+}
+
+// Core drawing engine
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); 
+  
+  if (gameState === "PLAYING") {
+      newTime = new Date().getTime();
+      time = newTime - prevTime;
+      prevTime = newTime;
+      
+      drawBricks();
+      drawBall(); 
+      drawPaddle();
+      drawScore();
+      drawLives();
+      collisionDetection();
+      
+      // Top wall bounce
+      if (y + dy < ballRadius) { 
+        dy = Math.abs(dy);
+      } 
+      // Bottom boundary calculations
+      else if (y + dy > canvas.height - ballRadius - 10) {
+        if (x > paddleX && x < paddleX + paddleWidth) {
+          dy = -dy;
+        } else if (y + dy > canvas.height) { 
+          lives--; 
+          if (!lives) { 
+            gameState = "GAMEOVER";
+          } else {
+            resetBallAndPaddle();
+          }
+        }
+      }
+      
+      // Side wall bounces
+      if (x + dx < ballRadius) { 
+        dx = Math.abs(dx);
+      } else if (x + dx > canvas.width - ballRadius) {
+        dx = -Math.abs(dx);
+      }
+      
+      // Keyboard input executions
+      if (rightPressed && paddleX < canvas.width - paddleWidth) {
+        paddleX += paddleDx;
+      } else if (leftPressed && paddleX > 0) {
+        paddleX -= paddleDx;
+      }
+      
+      x += dx * time; 
+      y += dy * time; 
+  } else if (gameState === "GAMEOVER") {
+      drawScreenOverlay("GAME OVER", "Final Score: " + score, "#ff4a4a");
+  } else if (gameState === "WIN") {
+      drawScreenOverlay("YOU WIN!", "Incredible! Final Score: " + score, "#4aff4a");
+  }
+}
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+  if (e.keyCode == 39) { rightPressed = true; } 
+  else if (e.keyCode == 37) { leftPressed = true; }
+}
+
+function keyUpHandler(e) {
+  if (e.keyCode == 39) { rightPressed = false; } 
+  else if (e.keyCode == 37) { leftPressed = false; }
+}
+
+function collisionDetection() {
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      var b = bricks[c][r];
+      if (b.status == 1) {
+        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+          dy = -dy;
+          b.status = 0;
+          score++;
+          if (score == brickRowCount * brickColumnCount) {
+             gameState = "WIN";
+          }
+        }
+      }
+    }
+  }
+}
+
+function drawScore() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.textAlign = "left";
+  ctx.fillText("Score: " + score, 20, 30);
+}
+
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.textAlign = "right";
+  ctx.fillText("Lives: " + lives, canvas.width - 20, 30);
+}
+
+// Mouse movement listeners
+document.addEventListener("mousemove", mouseMoveHandler, false);
+function mouseMoveHandler(e) {
+  var relativeX = e.clientX - canvas.offsetLeft;
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth / 2;
+  }
+}
+
+// Listens for clicks on the "PLAY AGAIN" overlay button boundaries
+document.addEventListener("click", function(e) {
+    if (gameState !== "PLAYING") {
+        var rect = canvas.getBoundingClientRect();
+        var clickX = e.clientX - rect.left;
+        var clickY = e.clientY - rect.top;
+        
+        var btnX = canvas.width / 2 - 100;
+        var btnY = canvas.height / 2 + 70;
+        
+        if (clickX >= btnX && clickX <= btnX + 200 && clickY >= btnY && clickY <= btnY + 45) {
+            resetGame();
+        }
+    }
+});
+
+// Run rendering loops via requestAnimationFrame
+function gameLoop() {
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>game-station</title>
+    
+</head>
+<body>
+   <header>
+        <div class="card">
+            <div class="buttons">
+                <a id="menubtn" href="javascript:void(0)" class="round-button multi-line-button" onclick="togglenav()">
+                </a>
+            </div>  
+        </div>
+    </header>
+
+    <div class="game_holder">
+        
+        <a href="games/diffrences/memory_game.html" class="game btn-1"></a>
+
+        <a href="games/roadkill/roadcross.html" class="game btn-2"></a>
+
+        <a href="games/tiles/tiles.html" class="game btn-3"></a>
+
+    </div>
+
+
+    <div id="main">
+        <div id="mySidenav" class="sidenav">
+            <b href="javascript:void(0)" class="close-btn" onclick="togglenav()">&times;</b>
+            <a href="#" onclick="toggleabout()">about us</a>
+            <a href="#" onclick="togglecontact()">Contact us</a>
+        </div>
+
+        <div id="aboutid">
+            <a href="#" class="close-btn" onclick="toggleabout()" >&times;</a>
+            <div>
+                <p>this is a simple javascript site that all, i guess  </p>
+            </div>
+        </div>
+        <div id="contactid">
+            <a href="#" class="close-btn" onclick="togglecontact()">&times;</a>
+            <div>
+                <p>you can contact us at 123@example.com</p>
+            </div>
+        </div>
+    </div>
+    
+
+    <script>
+
+        function togglenav() {
+            var state = document.getElementById("mySidenav");
+            if(state.style.width === "250px"){
+                document.getElementById("mySidenav").style.width = "0";
+                document.getElementById("main").style.marginLeft = "0";
+            }
+            else{
+                document.getElementById("mySidenav").style.width = "250px";
+                document.getElementById("main").style.marginLeft = "250px";
+            }
+        }
+       function toggleabout() {
+            var element = document.getElementById("aboutid");
+            element.classList.toggle("open");
+}
+        function togglecontact() {
+            var element = document.getElementById("contactid");
+            element.classList.toggle("open");
+}
+    </script>
+    
+</body>
+</html>
