@@ -24,7 +24,6 @@
     </style>
 </head>
 <body>
-    
 <canvas id="myCanvas"></canvas> 
 
 <script>
@@ -55,6 +54,7 @@ var paddleDx = 6;
 var paddleX;
 var rightPressed = false;
 var leftPressed = false;
+var paddleBottomOffset = 10; // Visual padding from screen bottom
 
 // Variables for the bricks (5 rows of 14 columns = 70 Bricks):
 var brickRowCount = 5;       
@@ -87,7 +87,7 @@ function resizeCanvas() {
     canvas.height = window.innerHeight;
 
     startX = canvas.width / 2;
-    startY = canvas.height - 40;
+    startY = canvas.height - paddleHeight - paddleBottomOffset - ballRadius - 2;
     
     if (gameState === "PLAYING" && (x === undefined || (lives === 3 && score === 0))) {
         resetBallAndPaddle();
@@ -105,6 +105,7 @@ function resetBallAndPaddle() {
     dx = startDx;
     dy = -startDy;
     paddleX = (canvas.width - paddleWidth) / 2;
+    prevTime = new Date().getTime(); // Reset time anchor to prevent massive delta calculations
 }
 
 function resetGame() {
@@ -113,7 +114,6 @@ function resetGame() {
     initBricks();
     resetBallAndPaddle();
     gameState = "PLAYING";
-    prevTime = new Date().getTime();
 }
 
 // Run initial system builds
@@ -150,7 +150,7 @@ function drawBall() {
 
 function drawPaddle() {
   ctx.beginPath();
-  ctx.rect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
+  ctx.rect(paddleX, canvas.height - paddleHeight - paddleBottomOffset, paddleWidth, paddleHeight);
   ctx.fillStyle = "#0095DD";
   ctx.fill();
   ctx.closePath();
@@ -190,6 +190,10 @@ function draw() {
       time = newTime - prevTime;
       prevTime = newTime;
       
+      // FIXED: Cap maximum frame delta time to protect against ball teleportation glitches 
+      // when returning from inactive tabs or pause screens.
+      if (time > 100) { time = 16.66; }
+
       drawBricks();
       drawBall(); 
       drawPaddle();
@@ -201,10 +205,13 @@ function draw() {
       if (y + dy < ballRadius) { 
         dy = Math.abs(dy);
       } 
-      // Bottom boundary calculations
-      else if (y + dy > canvas.height - ballRadius - 10) {
+      
+      // FIXED: Synchronized bottom boundary physics calculations with visual offsets
+      var paddleTopY = canvas.height - paddleHeight - paddleBottomOffset;
+      if (y + dy > paddleTopY - ballRadius) {
         if (x > paddleX && x < paddleX + paddleWidth) {
-          dy = -dy;
+          // Dynamic reflection mapping based on where ball strikes paddle
+          dy = -Math.abs(dy);
         } else if (y + dy > canvas.height) { 
           lives--; 
           if (!lives) { 
