@@ -5,18 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Full Screen Breakout</title>
     <style>
-        /* Forces the page to occupy exactly 100% of the screen with no scrollbars */
         html, body {
             padding: 0;
             margin: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: darkgreen;
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
         }
 
         canvas {
-            background: darkgreen;
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
             display: block;
             width: 100vw;
             height: 100vh;
@@ -27,19 +36,15 @@
 <canvas id="myCanvas"></canvas> 
 
 <script>
-// Declaring the canvas and drawing variables:
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-// Game States: "PLAYING", "GAMEOVER", "WIN"
 var gameState = "PLAYING";
 
-// Time Variables:
 var prevTime = new Date().getTime();
 var time = null;
 var newTime = null;
 
-// Variables for the circle:
 var ballRadius = 10;
 var startX, x, startY, y;
 var startDx = 0.3;
@@ -47,16 +52,14 @@ var dx = startDx;
 var startDy = 0.3;
 var dy = -startDy;
 
-// Variables for the paddle:
 var paddleHeight = 15;
 var paddleWidth = 120; 
 var paddleDx = 6;
 var paddleX;
 var rightPressed = false;
 var leftPressed = false;
-var paddleBottomOffset = 10; // Visual padding from screen bottom
+var paddleBottomOffset = 10;
 
-// Variables for the bricks (5 rows of 14 columns = 70 Bricks):
 var brickRowCount = 5;       
 var brickColumnCount = 14;   
 var brickHeight = 20;
@@ -65,11 +68,9 @@ var brickOffsetTop = 60;
 var brickOffsetLeft = 25;
 var brickWidth; 
 
-// Score & Lives:
 var score = 0;
 var lives = 3;
 
-// Creating an array to store the bricks:
 var bricks = [];
 function initBricks() {
   bricks = [];
@@ -81,7 +82,6 @@ function initBricks() {
   }
 }
 
-// Resizes the canvas pixel dimensions to match the screen perfectly
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -93,7 +93,6 @@ function resizeCanvas() {
         resetBallAndPaddle();
     }
 
-    // Calculates flexible brick width based on dynamic screen sizes
     var totalPaddingSpace = brickPadding * (brickColumnCount - 1);
     var totalMarginSpace = brickOffsetLeft * 2;
     brickWidth = (canvas.width - totalPaddingSpace - totalMarginSpace) / brickColumnCount;
@@ -105,7 +104,7 @@ function resetBallAndPaddle() {
     dx = startDx;
     dy = -startDy;
     paddleX = (canvas.width - paddleWidth) / 2;
-    prevTime = new Date().getTime(); // Reset time anchor to prevent massive delta calculations
+    prevTime = new Date().getTime(); 
 }
 
 function resetGame() {
@@ -116,12 +115,10 @@ function resetGame() {
     gameState = "PLAYING";
 }
 
-// Run initial system builds
 initBricks();
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Function for drawing the bricks:
 function drawBricks() {
   for (var c = 0; c < brickColumnCount; c++) {
     for (var r = 0; r < brickRowCount; r++) {
@@ -132,7 +129,7 @@ function drawBricks() {
         bricks[c][r].y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = "#0095DD"; 
+        ctx.fillStyle = "rgb(59, 5, 79)"; 
         ctx.fill();
         ctx.closePath();
       }
@@ -143,7 +140,7 @@ function drawBricks() {
 function drawBall() {
   ctx.beginPath(); 
   ctx.arc(x, y, ballRadius, 0, Math.PI * 2); 
-  ctx.fillStyle = "#0095DD"; 
+  ctx.fillStyle = "rgb(0, 3, 68),"; 
   ctx.fill();
   ctx.closePath(); 
 }
@@ -151,28 +148,24 @@ function drawBall() {
 function drawPaddle() {
   ctx.beginPath();
   ctx.rect(paddleX, canvas.height - paddleHeight - paddleBottomOffset, paddleWidth, paddleHeight);
-  ctx.fillStyle = "#0095DD";
+  ctx.fillStyle = "#17202a";
   ctx.fill();
   ctx.closePath();
 }
 
-// Draws screen filters when user Wins or Loses
 function drawScreenOverlay(title, subtitle, color) {
   ctx.fillStyle = "rgba(17, 23, 30, 0.85)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Main Text Header
   ctx.font = "bold 48px Arial";
   ctx.fillStyle = color;
   ctx.textAlign = "center";
   ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 20);
 
-  // Score Details Subtitle
   ctx.font = "20px Arial";
   ctx.fillStyle = "#ffffff";
   ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 30);
 
-  // Restart Interactive Button
   ctx.fillStyle = "#0095DD";
   ctx.fillRect(canvas.width / 2 - 100, canvas.height / 2 + 70, 200, 45);
   
@@ -181,7 +174,6 @@ function drawScreenOverlay(title, subtitle, color) {
   ctx.fillText("PLAY AGAIN", canvas.width / 2, canvas.height / 2 + 98);
 }
 
-// Core drawing engine
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); 
   
@@ -190,8 +182,6 @@ function draw() {
       time = newTime - prevTime;
       prevTime = newTime;
       
-      // FIXED: Cap maximum frame delta time to protect against ball teleportation glitches 
-      // when returning from inactive tabs or pause screens.
       if (time > 100) { time = 16.66; }
 
       drawBricks();
@@ -201,16 +191,13 @@ function draw() {
       drawLives();
       collisionDetection();
       
-      // Top wall bounce
       if (y + dy < ballRadius) { 
         dy = Math.abs(dy);
       } 
       
-      // FIXED: Synchronized bottom boundary physics calculations with visual offsets
       var paddleTopY = canvas.height - paddleHeight - paddleBottomOffset;
       if (y + dy > paddleTopY - ballRadius) {
         if (x > paddleX && x < paddleX + paddleWidth) {
-          // Dynamic reflection mapping based on where ball strikes paddle
           dy = -Math.abs(dy);
         } else if (y + dy > canvas.height) { 
           lives--; 
@@ -222,14 +209,12 @@ function draw() {
         }
       }
       
-      // Side wall bounces
       if (x + dx < ballRadius) { 
         dx = Math.abs(dx);
       } else if (x + dx > canvas.width - ballRadius) {
         dx = -Math.abs(dx);
       }
       
-      // Keyboard input executions
       if (rightPressed && paddleX < canvas.width - paddleWidth) {
         paddleX += paddleDx;
       } else if (leftPressed && paddleX > 0) {
@@ -299,7 +284,6 @@ function mouseMoveHandler(e) {
   }
 }
 
-// Listens for clicks on the "PLAY AGAIN" overlay button boundaries
 document.addEventListener("click", function(e) {
     if (gameState !== "PLAYING") {
         var rect = canvas.getBoundingClientRect();
@@ -315,7 +299,6 @@ document.addEventListener("click", function(e) {
     }
 });
 
-// Run rendering loops via requestAnimationFrame
 function gameLoop() {
     draw();
     requestAnimationFrame(gameLoop);

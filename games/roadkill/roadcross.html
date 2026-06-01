@@ -7,7 +7,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <style>
-        /* CLEANED: Removed messy CodePen remnants from the CSS section */
+      
         * {
             padding: 0;
             margin: 0;
@@ -17,7 +17,12 @@
         html, body, canvas {
             width: 100%;
             height: 100%;
-            background: #000;
+            background: linear-gradient(to bottom, #17202a 90%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
             overflow: hidden;
         }
         
@@ -31,11 +36,9 @@
     <script>
     $(function() {
 
-        // create DOM canvas
         var canvas = document.createElement("canvas");
         var ctx    = canvas.getContext('2d');
 
-        //set canvas dim
         canvas.width  = window.innerWidth;
         canvas.height = window.innerHeight;
 
@@ -122,7 +125,7 @@
 
         var blocks = (function() {
          
-          var blocksArray = [], // Fixed: named specifically to avoid collision with module container identifier variable name
+          var blocksArray = [], 
               level = 0,
               level_factor = 1.20,
               start = {
@@ -160,11 +163,20 @@
             
             nextLevel: function() {
               
-              ++level;
-              blocksArray = [];
-              
-              var n = Math.ceil(start.n + (level*level_factor));
-              this.createXBlocks(n);
+  
+                ++level;
+                canvas.height = window.innerHeight + 15; 
+                blocksArray = [];
+                
+                if (level < 20) {
+                  start.x2 = Math.min(start.x2 + 50, canvas.width - 150);
+                }
+
+                var n = Math.ceil(start.n + (level*level_factor));
+                this.createXBlocks(n);
+
+                          
+
             },
             
             draw: function(b) {
@@ -217,7 +229,6 @@
                   }
                 } 
                 
-                //collision detection
                 if(((px > blocksArray[i].x) && (px < (blocksArray[i].x + blocksArray[i].w))) && 
                    ((py > blocksArray[i].y) && py < (blocksArray[i].y + blocksArray[i].h) )) {
                   player.die();
@@ -239,12 +250,12 @@
 
 
         var ctrl = {
-          x : 100,  //initial x
-          y : (canvas.height/2),  // initial y
+          x : 100, 
+          y : (canvas.height/2),  
           velY : 0,
           velX : 0,
-          speed : 5, // Adjusted speed from 1400 to prevent zooming instantly offscreen
-          friction : 0.85, // Smooth friction values
+          speed : 5, 
+          friction : 0.85, 
           keys : []
         }
 
@@ -260,7 +271,6 @@
             }
           }
 
-          // movement calculations
           if (ctrl.keys[38] || ctrl.keys[87]) {
             if (ctrl.velY > -ctrl.speed) { ctrl.velY--; }
           }
@@ -274,13 +284,11 @@
             if (ctrl.velX > -ctrl.speed) { ctrl.velX--; }
           }
           
-          // apply friction and velocity adjustments
           ctrl.velY *= ctrl.friction;
           ctrl.y += ctrl.velY;
           ctrl.velX *= ctrl.friction;
           ctrl.x += ctrl.velX;
 
-          // bounds checking
           if (ctrl.x >= canvas.width) { ctrl.x = canvas.width; } 
           else if (ctrl.x <= 5) { ctrl.x = 5; }
 
@@ -293,7 +301,6 @@
 
         updateCtrl();
 
-        // key tracking events listeners
         document.body.addEventListener("keydown", function (e) {
           ctrl.keys[e.keyCode] = true;
         });

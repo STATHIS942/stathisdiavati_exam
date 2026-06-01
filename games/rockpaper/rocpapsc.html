@@ -7,7 +7,12 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -25,13 +30,14 @@
             display: flex;
             justify-content: space-around;
             width: 300px;
-            background-color: #fff;
+            background-color: #0d1015;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             margin-bottom: 25px;
             font-size: 1.2rem;
             font-weight: bold;
+            color:#fff
         }
 
         .score {
@@ -51,7 +57,7 @@
         .result-text {
             font-size: 1.4rem;
             font-weight: bold;
-            color: #2196F3;
+            color: #ca1010;
             margin-bottom: 30px;
             height: 35px;
         }
@@ -63,8 +69,8 @@
 
         .choice-btn {
             font-size: 3rem;
-            background-color: white;
-            border: 2px solid #ddd;
+            background-color: rgb(24, 16, 16);
+            border: 2px solid #000000;
             border-radius: 50%;
             width: 90px;
             height: 90px;
@@ -77,7 +83,7 @@
         }
 
         .choice-btn:hover {
-            border-color: #2196F3;
+            border-color: #790000;
             transform: scale(1.05);
         }
 
@@ -88,16 +94,16 @@
         #resetBtn {
             margin-top: 30px;
             padding: 8px 16px;
-            background-color: #e0e0e0;
+            background-color: #191414;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
-            color: #555;
+            color: red;
         }
 
         #resetBtn:hover {
-            background-color: #d5d5d5;
+            background-color: #0d0d0d;
         }
     </style>
 </head>
@@ -167,11 +173,9 @@
         function playRound(playerChoice) {
             const computerChoice = getComputerChoice();
             
-            // Update display emojis
             playerDisp.innerText = emojis[playerChoice];
             computerDisp.innerText = emojis[computerChoice];
 
-            // Determine winner
             const result = getResult(playerChoice, computerChoice);
 
             if (result === 'win') {
@@ -190,7 +194,6 @@
             }
         }
 
-        // Event listeners for game buttons
         buttons.forEach(button => {
             button.addEventListener('click', () => {
                 const playerChoice = button.getAttribute('data-choice');
@@ -198,7 +201,6 @@
             });
         });
 
-        // Reset game
         resetBtn.addEventListener('click', () => {
             playerScore = 0;
             computerScore = 0;

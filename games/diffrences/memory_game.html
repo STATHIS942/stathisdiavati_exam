@@ -12,11 +12,15 @@
         }
 
         body {
-            background-color: #47a54e;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='charlie-brown' fill='%233a2e32' fill-opacity='0.4'%3E%3Cpath d='M9.8 12L0 2.2V.8l10 10 10-10v1.4L10.2 12h-.4zm-4 0L0 6.2V4.8L7.2 12H5.8zm8.4 0L20 6.2V4.8L12.8 12h1.4zM9.8 0l.2.2.2-.2h-.4zm-4 0L10 4.2 14.2 0h-1.4L10 2.8 7.2 0H5.8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
         }
 
-        /* Container that holds the flipping card structure */
         .card-container {
             width: 80px;
             height: 120px;
@@ -26,7 +30,6 @@
             user-select: none;
         }
 
-        /* The wrapper that actually rotates */
         .card-inner {
             width: 100%;
             height: 100%;
@@ -36,26 +39,23 @@
             cursor: pointer;
         }
 
-        /* Trigger rotation when the 'active' class is added */
         .card-container.active .card-inner {
             transform: rotateY(180deg);
         }
 
-        /* Base styles for both front and back faces */
         .card-front, .card-back {
             position: absolute;
             width: 100%;
             height: 100%;
             left: 0;
             top: 0;
-            backface-visibility: hidden; /* FIXED: Crucial property that prevents numbers showing through */
+            backface-visibility: hidden; 
             border-radius: 5px;
             border: 2px solid #3a2e32;
             text-align: center;
             box-shadow: 0 5px 10px rgba(0,0,0,0.3);
         }
 
-        /* Card Back: What you see when hidden */
         .card-back {
             background-color: #c12d2d;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%233a2e32' fill-opacity='0.9'%3E%3Cpath fill-rule='evenodd' d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
@@ -70,13 +70,12 @@
             background-color: #a32626;
         }
 
-        /* Card Front: What you see when flipped open */
         .card-front {
             background-color: #ffffff;
             color: #000000;
             font-size: 40px;
-            line-height: 116px; /* Vertical centering */
-            transform: rotateY(180deg); /* Pre-rotated so it faces right when inner turns */
+            line-height: 116px; 
+            transform: rotateY(180deg);
         }
 
         .matched {
@@ -110,12 +109,12 @@
         }
 
         #settings-box button:hover {
-            background-color: #1c975b;
+            background-color: rgb(154, 8, 8);
             cursor: pointer;
         }
 
         #settings-box .btn-active {
-            background-color: #1d744a;
+            background-color: rgb(154, 8, 8);
             color: white;
         }
 
@@ -260,7 +259,6 @@
 
         function checkClick(targetCard) {
             if (lockBoard) return;
-            // Target the container element instead of individual faces
             if (targetCard.classList.contains('active') || targetCard.classList.contains('matched')) return;
 
             targetCard.classList.add('active');
@@ -316,7 +314,6 @@
 
         setupGame();
 
-        // Event Delegator adjusted to find the parent container if a face is clicked
         document.addEventListener('click', function (event) {
             if (event.target.matches('#easy')) { difficulty = "easy"; setupGame(); return; }
             if (event.target.matches('#medium')) { difficulty = "medium"; setupGame(); return; }
