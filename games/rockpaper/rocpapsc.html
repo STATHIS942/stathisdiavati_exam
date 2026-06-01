@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock, Paper, Scissors</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            width: 300px;
+            background-color: #0d1015;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color:#fff
+        }
+
+        .score {
+            text-align: center;
+        }
+
+        .choices-display {
+            display: flex;
+            justify-content: space-between;
+            width: 250px;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            min-height: 40px;
+            color: #555;
+        }
+
+        .result-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ca1010;
+            margin-bottom: 30px;
+            height: 35px;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .choice-btn {
+            font-size: 3rem;
+            background-color: rgb(24, 16, 16);
+            border: 2px solid #000000;
+            border-radius: 50%;
+            width: 90px;
+            height: 90px;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .choice-btn:hover {
+            border-color: #790000;
+            transform: scale(1.05);
+        }
+
+        .choice-btn:active {
+            transform: scale(0.95);
+        }
+
+        #resetBtn {
+            margin-top: 30px;
+            padding: 8px 16px;
+            background-color: #191414;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: red;
+        }
+
+        #resetBtn:hover {
+            background-color: #0d0d0d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Rock, Paper, Scissors</h1>
+
+    <div class="score-board">
+        <div class="score">Player: <span id="player-score">0</span></div>
+        <div class="score">CPU: <span id="computer-score">0</span></div>
+    </div>
+
+    <div class="choices-display">
+        <div id="player-choice-disp">❔</div>
+        <div>vs</div>
+        <div id="computer-choice-disp">❔</div>
+    </div>
+
+    <div class="result-text" id="result-message">Choose your weapon!</div>
+
+    <div class="buttons-container">
+        <button class="choice-btn" data-choice="rock">✊</button>
+        <button class="choice-btn" data-choice="paper">✋</button>
+        <button class="choice-btn" data-choice="scissors">✌️</button>
+    </div>
+
+    <button id="resetBtn">Reset Score</button>
+
+    <script>
+        const playerScoreTxt = document.getElementById('player-score');
+        const computerScoreTxt = document.getElementById('computer-score');
+        const playerDisp = document.getElementById('player-choice-disp');
+        const computerDisp = document.getElementById('computer-choice-disp');
+        const resultTxt = document.getElementById('result-message');
+        const resetBtn = document.getElementById('resetBtn');
+        const buttons = document.querySelectorAll('.choice-btn');
+
+        let playerScore = 0;
+        let computerScore = 0;
+
+        const emojis = {
+            rock: '✊',
+            paper: '✋',
+            scissors: '✌️'
+        };
+
+        function getComputerChoice() {
+            const choices = ['rock', 'paper', 'scissors'];
+            const randomIndex = Math.floor(Math.random() * choices.length);
+            return choices[randomIndex];
+        }
+
+        function getResult(player, computer) {
+            if (player === computer) return 'draw';
+            
+            if (
+                (player === 'rock' && computer === 'scissors') ||
+                (player === 'paper' && computer === 'rock') ||
+                (player === 'scissors' && computer === 'paper')
+            ) {
+                return 'win';
+            }
+            
+            return 'lose';
+        }
+
+        function playRound(playerChoice) {
+            const computerChoice = getComputerChoice();
+            
+            playerDisp.innerText = emojis[playerChoice];
+            computerDisp.innerText = emojis[computerChoice];
+
+            const result = getResult(playerChoice, computerChoice);
+
+            if (result === 'win') {
+                playerScore++;
+                playerScoreTxt.innerText = playerScore;
+                resultTxt.innerText = `You Win! ${playerChoice} beats ${computerChoice}.`;
+                resultTxt.style.color = '#4CAF50'; // Green
+            } else if (result === 'lose') {
+                computerScore++;
+                computerScoreTxt.innerText = computerScore;
+                resultTxt.innerText = `You Lose! ${computerChoice} beats ${playerChoice}.`;
+                resultTxt.style.color = '#f44336'; // Red
+            } else {
+                resultTxt.innerText = `It's a Tie! Both chose ${playerChoice}.`;
+                resultTxt.style.color = '#2196F3'; // Blue
+            }
+        }
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const playerChoice = button.getAttribute('data-choice');
+                playRound(playerChoice);
+            });
+        });
+
+        resetBtn.addEventListener('click', () => {
+            playerScore = 0;
+            computerScore = 0;
+            playerScoreTxt.innerText = '0';
+            computerScoreTxt.innerText = '0';
+            playerDisp.innerText = '❔';
+            computerDisp.innerText = '❔';
+            resultTxt.innerText = 'Choose your weapon!';
+            resultTxt.style.color = '#2196F3';
+        });
+    </script>
+</body>
+</html>

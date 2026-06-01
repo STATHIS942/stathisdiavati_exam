@@ -3,321 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Card Matching Game</title>
     <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     
+        }
 
-    HTML CSS JS 
+        .card-container {
+            width: 80px;
+            height: 120px;
+            margin: 10px;
+            float: left;
+            perspective: 1000px;
+            user-select: none;
+        }
 
-    Result
-    Skip Results Iframe
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            cursor: pointer;
+        }
 
-EDIT ON
+        .card-container.active .card-inner {
+            transform: rotateY(180deg);
+        }
 
-* {
-  padding: 0;
-  margin: 0;
-  box-sizing: inherit;
-}
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            backface-visibility: hidden; 
+            border-radius: 5px;
+            border: 2px solid #3a2e32;
+            text-align: center;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
 
-body {
-  background-color: #47a54e;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='charlie-brown' fill='%233a2e32' fill-opacity='0.4'%3E%3Cpath d='M9.8 12L0 2.2V.8l10 10 10-10v1.4L10.2 12h-.4zm-4 0L0 6.2V4.8L7.2 12H5.8zm8.4 0L20 6.2V4.8L12.8 12h1.4zM9.8 0l.2.2.2-.2h-.4zm-4 0L10 4.2 14.2 0h-1.4L10 2.8 7.2 0H5.8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  box-sizing: border-box;
-}
+        .card-back {
+            background-color: #c12d2d;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%233a2e32' fill-opacity='0.9'%3E%3Cpath fill-rule='evenodd' d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
 
-.active {
-  background-color: #fff !important;
-  background-image: none !important;
-  text-align: center !important;
+        .card-container:hover .card-back {
+            background-color: #a32626;
+        }
 
-  color: #000 !important;
-  transform: rotateY(360deg) !important;
-}
+        .card-front {
+            background-color: #ffffff;
+            color: #000000;
+            font-size: 40px;
+            line-height: 116px; 
+            transform: rotateY(180deg);
+        }
 
-.matched {
-  opacity: 0 !important;
-  visibility: hidden;
-}
+        .matched {
+            opacity: 0 !important;
+            visibility: hidden;
+            transition: opacity 0.4s ease-out, visibility 0.4s;
+        }
 
-.easy {
-  width: 500px;
-  margin: 200px auto;
-}
+        .easy { width: 520px; margin: 120px auto; }
+        .medium { width: 520px; margin: 120px auto; }
+        .hard { width: 620px; margin: 120px auto; }
+        .extreme { width: 820px; margin: 120px auto; }
 
-.medium {
-  width: 500px;
-  margin: 150px auto;
-}
+        #game-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
-.hard {
-  width: 600px;
-  margin: 110px auto;
-}
+        #settings-box {
+            background-color: #000000;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='1' viewBox='0 0 40 1' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v1H0z' fill='%23195437' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            z-index: 10;
+        }
 
-.extreme {
-  width: 800px;
-  margin: 100px auto;
-}
+        #settings-box button:hover {
+            background-color: rgb(154, 8, 8);
+            cursor: pointer;
+        }
 
-#card {
-  width: 80px;
-  height: 120px;
-  font-size: 40px;
-  float: left;
-  text-align: center;
+        #settings-box .btn-active {
+            background-color: rgb(154, 8, 8);
+            color: white;
+        }
 
-  color: #c12d2d;
-  background-color: #c12d2d;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%233a2e32' fill-opacity='0.9'%3E%3Cpath fill-rule='evenodd' d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
-  margin: 10px;
-  line-height: 120px;
-  border-radius: 3px;
-  border: 2px solid #3a2e32;
-  text-align: left;
+        .btn {
+            display: inline-block;
+            width: 80px;
+            height: 30px;
+            border: none;
+            background-color: #fff;
+            margin: 0 5px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
 
-  box-shadow: 0 5px 10px #000;
+        #info-box {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            width: 100%;
+            height: 90px;
+            position: absolute;
+            color: #fff;
+            top: 0;
+            text-align: center;
+            padding: 10px;
+            background-color: #3a1111;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='1' viewBox='0 0 40 1' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v1H0z' fill='%23541919' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            z-index: 10;
+        }
 
-  perspective: 1500px;
-  -moz-perspective: 1500px;
-
-  transform: rotateY(180deg);
-  transition: transform 0.7s;
-
-  &:hover {
-    color: #a32626;
-    background-color: #a32626;
-    cursor: pointer;
-  }
-}
-
-#game-board{
-  margin: 100px auto;  
-}
-
-#settings-box {
-  background-color: #000000;
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='1' viewBox='0 0 40 1' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v1H0z' fill='%23195437' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
-  position: absolute;
-  bottom: 0;
-  right:0;
-  width: 100%;
-  height: 50px;
-  text-align: center;
-  line-height: 50px;
-
-  button {
-    &:hover {
-      background-color: #1c975b;
-      cursor: pointer;
-    }
-    &-active {
-      background-color: #1d744a;
-    }
-  }
-}
-
-.btn {
-  display: inline-block;
-  width: 80px;
-  height: 30px;
-  border: none;
-  background-color: #fff;
-}
-
-#info-box {
-  font-family: "Bebas Neue", cursive;
-  font-size: 20px;
-  width: 100%;
-  height: 100px;
-  position: absolute;
-  color: #fff;
-  top: 0;
-  text-align: center;
-  padding: 10px;
-
-  background-color: #3a1111;
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='1' viewBox='0 0 40 1' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v1H0z' fill='%23541919' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
-
-  button:hover {
-    background-color: #d7d7d7;
-    cursor: pointer;
-  }
-}
-
-
+        #info-box button:hover {
+            background-color: #d7d7d7;
+            cursor: pointer;
+        }
     </style>
 </head>
-
 <body>
 
+    <div id="info-box"></div>
     <div id="game-board" class="easy"></div>
 
-    <div id="info-box"></div>
-
     <div id="settings-box">
-
-      <button id="easy" class="btn">Easy</button>
-      <button id="medium" class="btn">Medium</button>
-      <button id="hard" class="btn">Hard</button>
-      <button id="extreme" class="btn">Extreme</button>
+        <button id="easy" class="btn btn-active">Easy</button>
+        <button id="medium" class="btn">Medium</button>
+        <button id="hard" class="btn">Hard</button>
+        <button id="extreme" class="btn">Extreme</button>
     </div>
 
     <script>
+        const gameBoard = document.getElementById('game-board');
+        const infoBox = document.getElementById('info-box');
 
+        let cardArr = [];
+        const cardArrEasy = [1,1,2,2,3,3,4,4,5,5];
+        const cardArrMed = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
+        const cardArrHard = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15];
+        const cardArrExtreme = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20];
 
+        let clickedArr = [];
+        let itemArr = [];
+        let cardMatches = 0;
+        let attempts = 0;
+        let difficulty = "easy";
+        let extreme = false;
+        let matchesNeeded;
+        let lockBoard = false;
 
-const gameBoard = document.getElementById('game-board');
-let cardArr = [];
-const cardArrEasy = [1,1,2,2,3,3,4,4,5,5];
-const cardArrMed =[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
-const cardArrHard =[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15];
-const cardArrExtreme =[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20];
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
-let clickedArr = [];
-let itemArr=[];
-let itemClass =[];
-let cardMatches = 0;
-const infoBox = document.getElementById('info-box');
-let attempts = 0;
-let difficulty = "easy";
-let extreme = false;
-let matchesNeeded;
+        function updateInfoBox() {
+            infoBox.innerHTML = `
+                <p>Attempts: ${attempts}</p>
+                <p>Card Matches: ${cardMatches} / ${matchesNeeded}</p>
+            `;
+        }
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
+        function setupGame() {
+            lockBoard = false;
+            attempts = 0;
+            cardMatches = 0;
+            resetClicks();
+            selectDifficulty();
+            gameBoard.innerHTML = "";
+            shuffleArray(cardArr);
+            setupCards();
+            updateInfoBox();
+            updateActiveButton();
+        }
 
-function updateInfoBox(){
-    infoBox.innerHTML =`<p>Attempts: ${attempts}</p>
-    <p>Card Matches: ${cardMatches}</p>
-    <p>&nbsp;</p>`;
-}
-function setupGame(){
-    selectDifficulty();
-    gameBoard.innerHTML = "";
-    shuffleArray(cardArr);
-    setupCards();
-    updateInfoBox();
-    attempts = 0;
-    cardMatches = 0;
-    updateInfoBox();
-}
+        function setupCards() {
+            // FIXED: Structural overhaul using a true double-faced split 3D card layout
+            cardArr.forEach((val, idx) => {
+                gameBoard.innerHTML += `
+                    <div class="card-container card-instance" data-value="${val}">
+                        <div class="card-inner">
+                            <div class="card-back">?</div>
+                            <div class="card-front">${val}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-function setupCards() {
-    cardArr.forEach((a,b) => {
-        return gameBoard.innerHTML += 
-        `<div id='card' class='card${b}'>
-            ${a}
-        </div>`
-    });
-    
-}
+        function removeClasses() {
+            gameBoard.classList.remove('easy', 'medium', 'hard', 'extreme');
+        }
 
-function removeClasses() {
-    gameBoard.classList.remove('easy');
-    gameBoard.classList.remove('medium');
-    gameBoard.classList.remove('hard');
-    gameBoard.classList.remove('extreme');
-}
+        function resetClicks() {
+            clickedArr = [];
+            itemArr = [];
+        }
 
-function resetClicks (){
-    clickedArr = [];
-    itemArr = [];
-    itemClass = [];
-}
+        function updateActiveButton() {
+            document.querySelectorAll('#settings-box .btn').forEach(btn => {
+                btn.classList.remove('btn-active');
+            });
+            document.getElementById(difficulty).classList.add('btn-active');
+        }
 
-function removeClass() {
-    itemArr.map(a => {a.classList.remove('active')});
-    resetClicks();
-}
+        function selectDifficulty() {
+            if(difficulty == "easy") {
+                cardArr = cardArrEasy.slice();
+                extreme = false;
+            } else if(difficulty == "medium") {
+                cardArr = cardArrMed.slice();
+                extreme = false;
+            } else if(difficulty == "hard") {
+                cardArr = cardArrHard.slice();
+                extreme = false;
+            } else if(difficulty == "extreme") {
+                cardArr = cardArrExtreme.slice();
+                extreme = true;
+            }
+            removeClasses();
+            gameBoard.classList.add(difficulty);
+            matchesNeeded = (cardArr.length / 2);
+        }
 
-function selectDifficulty () {
-    if(difficulty == "easy"){
-        cardArr = cardArrEasy;
-        extreme = false;
-        removeClasses();
-        gameBoard.classList.add('easy');
-    } else if(difficulty == "medium"){
-        cardArr = cardArrMed;
-        extreme = false;
-        removeClasses();
-        gameBoard.classList.add('medium');
-    }else if(difficulty == "hard"){
-        cardArr = cardArrHard;
-        extreme = false;
-        removeClasses();
-        gameBoard.classList.add('hard');
-    }else if(difficulty == "extreme"){
-        cardArr = cardArrExtreme;
-        extreme = true;
-        removeClasses();
-        gameBoard.classList.add('extreme');
-    }
-    matchesNeeded= (cardArr.length/2);
-}
+        function checkClick(targetCard) {
+            if (lockBoard) return;
+            if (targetCard.classList.contains('active') || targetCard.classList.contains('matched')) return;
 
-function checkClick (){
-    let classList = event.srcElement.className.split(/\s+/);
+            targetCard.classList.add('active');
+            itemArr.push(targetCard);
+            clickedArr.push(targetCard.getAttribute('data-value'));
 
-            if(itemArr.length <= 1 && itemClass[0] !== classList[0]){
-                
-                itemClass.push(event.target.classList[0]);
-                itemArr.push(event.target);
-    
-                if(clickedArr.length  <= 2 ){
-                    clickedArr.push(event.target.innerHTML);
-                    event.target.classList.add('active');
+            if (clickedArr.length === 2) {
+                lockBoard = true; 
+                attempts++;
+
+                if (clickedArr[0] === clickedArr[1]) {
+                    cardMatches++;
+                    setTimeout(() => {
+                        itemArr.forEach(card => card.classList.add('matched'));
+                        resetClicks();
+                        lockBoard = false;
+                        checkWinCondition();
+                    }, 600);
+                } else {
+                    setTimeout(() => {
+                        itemArr.forEach(card => card.classList.remove('active'));
+                        resetClicks();
+                        lockBoard = false;
+                        checkLoseCondition();
+                    }, 800);
                 }
             }
-
-    if(clickedArr.length === 2){
-        if(clickedArr[0] === clickedArr[1]){
-            setTimeout(function () { itemArr.map(a => {a.classList.remove('active'); a.classList.add('matched');}) }, 800); 
-            cardMatches++;
         }
-        attempts++;
-        setTimeout(function () { removeClass() }, 800);
-        
-    }
 
-    if(cardMatches >= matchesNeeded){
-        setTimeout(function () { infoBox.innerHTML = `<p>You Win! Attempts: ${attempts}</p> <button id='reset' onClick='setupGame()' class="btn">Reset</button>`; }, 500);
-    }
-    if(extreme == true && attempts >= 70){
-        setTimeout(function () { infoBox.innerHTML = 
-            `<p>You Lose! Attempts: ${attempts}</p> <button id='reset' onClick='setupGame()' class="btn">Reset</button>`; 
-            gameBoard.innerHTML = "";
-        }, 100);
-        gameBoard.innerHTML = "";
-    }
-}
+        function checkWinCondition() {
+            if (cardMatches >= matchesNeeded) {
+                infoBox.innerHTML = `
+                    <p style="color: #4aff4a; font-weight: bold;">You Win! Total Attempts: ${attempts}</p>
+                    <button id='reset' onClick='setupGame()' class="btn" style="margin-top:5px;">Reset</button>
+                `;
+            } else {
+                updateInfoBox();
+            }
+        }
 
+        function checkLoseCondition() {
+            if (extreme && attempts >= 30) {
+                lockBoard = true;
+                infoBox.innerHTML = `
+                    <p style="color: #ff4a4a; font-weight: bold;">You Lose! Attempt Limit Exceeded (30 Max)</p>
+                    <button id='reset' onClick='setupGame()' class="btn" style="margin-top:5px;">Reset</button>
+                `;
+                gameBoard.innerHTML = "";
+            } else {
+                updateInfoBox();
+            }
+        }
 
-setupGame();
+        setupGame();
 
+        document.addEventListener('click', function (event) {
+            if (event.target.matches('#easy')) { difficulty = "easy"; setupGame(); return; }
+            if (event.target.matches('#medium')) { difficulty = "medium"; setupGame(); return; }
+            if (event.target.matches('#hard')) { difficulty = "hard"; setupGame(); return; }
+            if (event.target.matches('#extreme')) { difficulty = "extreme"; setupGame(); return; }
 
-document.addEventListener('click', function (event) {
-    // If the clicked element doesn't have the right selector, bail
-    if (event.target.matches('#easy')) {difficulty = "easy"; setupGame()}
-    if (event.target.matches('#medium')) {difficulty = "medium"; setupGame()}
-    if (event.target.matches('#hard')) {difficulty = "hard"; setupGame()}
-    if (event.target.matches('#extreme')) {difficulty = "extreme"; setupGame()}
-
-    if (!event.target.matches('#card')) {return};
-    
-    
-    checkClick();   
-    updateInfoBox();
-
-}, false);
-
-
-
+            const cardInstance = event.target.closest('.card-instance');
+            if (cardInstance) {
+                checkClick(cardInstance);
+            }
+        }, false);
     </script>
 </body>
 </html>

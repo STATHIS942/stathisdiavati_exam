@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #17202a 75%,
+    rgb(108, 16, 16),
+    rgb(154, 8, 8),
+    rgb(235, 0, 0));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .instructions {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 35px);
+            grid-template-rows: repeat(10, 35px);
+            gap: 2px;
+            background-color: #bbb;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background-color: #17202a;
+            border-top: 3px solid #090d10;
+            border-left: 3px solid #090d10;
+            border-right: 3px solid #090d10;
+            border-bottom: 3px solid #090d10;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .cell.revealed {
+            background-color: #17202a;
+            border: 1px solid #090d10;
+        }
+
+        .cell.mine {
+            background-color: #f44336;
+        }
+
+        .n-1 { color: #0000ff; }
+        .n-2 { color: #008000; }
+        .n-3 { color: #ff0000; }
+        .n-4 { color: #000080; }
+        .n-5 { color: #800000; }
+
+        button {
+            margin-top: 25px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            background-color: rgb(154, 8, 8);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: rgb(133, 6, 6);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Minesweeper</h1>
+    <div class="instructions">Left-click to Reveal | Right-click to Flag</div>
+
+    <div class="game-info">
+        <div>Mines Left: <span id="mines-count">15</span></div>
+        <div id="game-status">😊</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <button id="reset-btn">Restart Game</button>
+
+    <script>
+        const gridDisplay = document.getElementById('grid');
+        const minesCountLabel = document.getElementById('mines-count');
+        const gameStatusLabel = document.getElementById('game-status');
+        const resetBtn = document.getElementById('reset-btn');
+
+        const width = 10;
+        const totalMines = 15;
+        let flagsPlaced = 0;
+        let cellsArray = [];
+        let isGameOver = false;
+
+        function createBoard() {
+            // Reset states
+            gridDisplay.innerHTML = '';
+            cellsArray = [];
+            isGameOver = false;
+            flagsPlaced = 0;
+            minesCountLabel.innerText = totalMines;
+            gameStatusLabel.innerText = '😊';
+
+            // 1. Create a shuffled array containing mines and empty spaces
+            const minesArray = Array(totalMines).fill('mine');
+            const emptyArray = Array(width * width - totalMines).fill('empty');
+            const gameArray = emptyArray.concat(minesArray);
+            const shuffledGrid = gameArray.sort(() => Math.random() - 0.5);
+
+            // 2. Build out DOM cells
+            for (let i = 0; i < width * width; i++) {
+                const cell = document.createElement('div');
+                cell.setAttribute('id', i);
+                cell.classList.add('cell');
+                
+                // Store the structural type in custom dataset properties
+                cell.dataset.type = shuffledGrid[i];
+                gridDisplay.appendChild(cell);
+                cellsArray.push(cell);
+
+                // Left click to reveal
+                cell.addEventListener('click', function(e) {
+                    clickCell(cell);
+                });
+
+                // Right click to place a flag
+                cell.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    addFlag(cell);
+                });
+            }
+
+            // 3. Count neighbors and store inside dataset for efficiency
+            for (let i = 0; i < cellsArray.length; i++) {
+                let total = 0;
+                const isLeftEdge = (i % width === 0);
+                const isRightEdge = (i % width === width - 1);
+
+                if (cellsArray[i].dataset.type === 'empty') {
+                    // Check top-left, top, top-right
+                    if (i > 9 && !isLeftEdge && cellsArray[i - 1 - width].dataset.type === 'mine') total++;
+                    if (i > 9 && cellsArray[i - width].dataset.type === 'mine') total++;
+                    if (i > 9 && !isRightEdge && cellsArray[i + 1 - width].dataset.type === 'mine') total++;
+                    
+                    // Check left, right
+                    if (i > 0 && !isLeftEdge && cellsArray[i - 1].dataset.type === 'mine') total++;
+                    if (i < 99 && !isRightEdge && cellsArray[i + 1].dataset.type === 'mine') total++;
+                    
+                    // Check bottom-left, bottom, bottom-right
+                    if (i < 90 && !isLeftEdge && cellsArray[i - 1 + width].dataset.type === 'mine') total++;
+                    if (i < 90 && cellsArray[i + width].dataset.type === 'mine') total++;
+                    if (i < 90 && !isRightEdge && cellsArray[i + 1 + width].dataset.type === 'mine') total++;
+                    
+                    cellsArray[i].dataset.neighbors = total;
+                }
+            }
+        }
+
+        // Logic for adding/removing a flag
+        function addFlag(cell) {
+            if (isGameOver || cell.classList.contains('revealed')) return;
+
+            if (!cell.classList.contains('flag') && flagsPlaced < totalMines) {
+                cell.classList.add('flag');
+                cell.innerHTML = '🚩';
+                flagsPlaced++;
+                minesCountLabel.innerText = totalMines - flagsPlaced;
+                checkWin();
+            } else if (cell.classList.contains('flag')) {
+                cell.classList.remove('flag');
+                cell.innerHTML = '';
+                flagsPlaced--;
+                minesCountLabel.innerText = totalMines - flagsPlaced;
+            }
+        }
+
+        // Logic for clicking a cell
+        function clickCell(cell) {
+            let currentId = parseInt(cell.id);
+            if (isGameOver || cell.classList.contains('revealed') || cell.classList.contains('flag')) return;
+
+            if (cell.dataset.type === 'mine') {
+                gameOver(cell);
+            } else {
+                let total = cell.dataset.neighbors;
+                cell.classList.add('revealed');
+                // Remove bevel styling
+                cell.style.border = '1px solid #bbb';
+
+                if (total != 0) {
+                    cell.innerHTML = total;
+                    cell.classList.add(`n-${total}`);
+                    checkWin();
+                    return;
+                }
+                // Flood fill algorithm to reveal empty spaces nearby
+                checkNeighbors(currentId);
+            }
+            checkWin();
+        }
+
+        // Flood fill empty neighbors recursively
+        function checkNeighbors(id) {
+            const isLeftEdge = (id % width === 0);
+            const isRightEdge = (id % width === width - 1);
+
+            setTimeout(() => {
+                const neighborsToChecking = [
+                    { condition: id > 9 && !isLeftEdge, targetId: id - 1 - width }, // top-left
+                    { condition: id > 9, targetId: id - width },                   // top
+                    { condition: id > 9 && !isRightEdge, targetId: id + 1 - width }, // top-right
+                    { condition: id > 0 && !isLeftEdge, targetId: id - 1 },         // left
+                    { condition: id < 99 && !isRightEdge, targetId: id + 1 },       // right
+                    { condition: id < 90 && !isLeftEdge, targetId: id - 1 + width }, // bottom-left
+                    { condition: id < 90, targetId: id + width },                   // bottom
+                    { condition: id < 99 && !isRightEdge, targetId: id + 1 + width } // bottom-right
+                ];
+
+                neighborsToChecking.forEach(neighbor => {
+                    if (neighbor.condition) {
+                        const newCell = cellsArray[neighbor.targetId];
+                        clickCell(newCell);
+                    }
+                });
+            }, 10);
+        }
+
+        // Game over sequence
+        function gameOver(clickedCell) {
+            isGameOver = true;
+            gameStatusLabel.innerText = '😵';
+
+            // Show ALL mines
+            cellsArray.forEach(cell => {
+                if (cell.dataset.type === 'mine') {
+                    cell.classList.add('revealed', 'mine');
+                    cell.innerHTML = '💣';
+                    cell.style.border = '1px solid #bbb';
+                }
+            });
+        }
+
+        // Check if player won
+        function checkWin() {
+            let matches = 0;
+            let revealedCount = 0;
+
+            cellsArray.forEach(cell => {
+                if (cell.classList.contains('flag') && cell.dataset.type === 'mine') {
+                    matches++;
+                }
+                if (cell.classList.contains('revealed') && cell.dataset.type === 'empty') {
+                    revealedCount++;
+                }
+            });
+
+            // Either all mines are flagged, or all empty squares are revealed
+            if (matches === totalMines || revealedCount === (width * width - totalMines)) {
+                gameStatusLabel.innerText = '😎';
+                isGameOver = true;
+            }
+        }
+
+        resetBtn.addEventListener('click', createBoard);
+        
+        // Build game on script load
+        createBoard();
+    </script>
+</body>
+</html>
